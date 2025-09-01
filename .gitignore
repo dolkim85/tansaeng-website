@@ -1,0 +1,50 @@
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Log files
+*.log
+server.log
+firebase_test.log
+
+# Test files
+test_*.php
+test_*.html
+debug_*.php
+verify_*.php
+setup_*.php
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment files
+.env
+.env.local
+
+# Database files (if any)
+*.sqlite
+*.db
+
+# Cache files
+cache/
+temp/
+
+# Uploaded files (optional - you may want to keep some)
+uploads/temp/
+uploads/cache/
+
+# Documentation files (optional)
+*.md
+!README.md

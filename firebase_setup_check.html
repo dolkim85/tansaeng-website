@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase 설정 확인</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .status { padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 5px; overflow-x: auto; }
+        .step { margin: 20px 0; padding: 15px; border-left: 4px solid #007bff; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Firebase Google Login 설정 진단</h1>
+    
+    <div class="info">
+        <h3>📋 현재 Firebase 설정</h3>
+        <ul>
+            <li><strong>API Key:</strong> AIzaSyAz2KBntJtG1DwD-Xju2ZsyjOeLLVkLw0g</li>
+            <li><strong>Auth Domain:</strong> tansaeng-users.firebaseapp.com</li>
+            <li><strong>Project ID:</strong> tansaeng-users</li>
+        </ul>
+    </div>
+
+    <div class="step">
+        <h3>1단계: Firebase 연결 테스트</h3>
+        <button onclick="testFirebaseConnection()">Firebase 연결 확인</button>
+        <div id="connection-result"></div>
+    </div>
+
+    <div class="step">
+        <h3>2단계: Google Auth Provider 설정 테스트</h3>
+        <button onclick="testGoogleProvider()">Google Provider 확인</button>
+        <div id="provider-result"></div>
+    </div>
+
+    <div class="step">
+        <h3>3단계: 실제 Google 로그인 테스트</h3>
+        <button onclick="testGoogleLogin()">Google 로그인 시도</button>
+        <div id="login-result"></div>
+    </div>
+
+    <div class="step">
+        <h3>4단계: 필요한 설정 안내</h3>
+        <div class="warning">
+            <h4>⚠️ 주의사항</h4>
+            <p>현재 설정은 <strong>API Key만</strong> 있고 <strong>OAuth 2.0 Client ID</strong>가 없습니다.</p>
+            <p>Google 로그인이 작동하려면 다음 설정이 필요합니다:</p>
+        </div>
+        
+        <div class="info">
+            <h4>🔑 필요한 설정</h4>
+            <ol>
+                <li><strong>Google Cloud Console</strong>에서 OAuth 2.0 클라이언트 ID 생성</li>
+                <li><strong>Firebase Console</strong>에서 Google 제공업체 활성화</li>
+                <li><strong>승인된 도메인</strong>에 localhost 추가</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { 
+            getAuth, 
+            signInWithPopup, 
+            GoogleAuthProvider 
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAz2KBntJtG1DwD-Xju2ZsyjOeLLVkLw0g",
+            authDomain: "tansaeng-users.firebaseapp.com",
+            projectId: "tansaeng-users"
+        };
+
+        const GOOGLE_CLIENT_ID = "983535094803-v0ljlvpqhl4f5oiagv1v5sgu7ab6jsdj.apps.googleusercontent.com";
+
+        let app, auth, provider;
+
+        window.testFirebaseConnection = async function() {
+            const resultDiv = document.getElementById('connection-result');
+            try {
+                resultDiv.innerHTML = '<div class="info">Firebase 초기화 중...</div>';
+                
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                
+                resultDiv.innerHTML = '<div class="success">✅ Firebase 초기화 성공!</div>';
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Firebase 초기화 실패: ${error.message}</div>`;
+                console.error('Firebase init error:', error);
+            }
+        };
+
+        window.testGoogleProvider = function() {
+            const resultDiv = document.getElementById('provider-result');
+            try {
+                if (!auth) {
+                    resultDiv.innerHTML = '<div class="warning">⚠️ 먼저 Firebase 연결을 테스트하세요.</div>';
+                    return;
+                }
+
+                provider = new GoogleAuthProvider();
+                
+                // Google Provider 추가 설정
+                provider.addScope('profile');
+                provider.addScope('email');
+                provider.setCustomParameters({
+                    'prompt': 'select_account'
+                });
+                
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        ✅ Google Auth Provider 생성 성공!<br>
+                        <strong>Client ID:</strong> ${GOOGLE_CLIENT_ID}<br>
+                        <strong>Scopes:</strong> profile, email
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">❌ Google Provider 생성 실패: ${error.message}</div>`;
+                console.error('Provider error:', error);
+            }
+        };
+
+        window.testGoogleLogin = async function() {
+            const resultDiv = document.getElementById('login-result');
+            try {
+                if (!auth || !provider) {
+                    resultDiv.innerHTML = '<div class="warning">⚠️ 먼저 이전 단계들을 완료하세요.</div>';
+                    return;
+                }
+
+                resultDiv.innerHTML = '<div class="info">Google 로그인 팝업 열기 시도 중...</div>';
+
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+
+                resultDiv.innerHTML = `
+                    <div class="success">
+                        <h4>✅ Google 로그인 성공!</h4>
+                        <p><strong>이름:</strong> ${user.displayName}</p>
+                        <p><strong>이메일:</strong> ${user.email}</p>
+                        <p><strong>UID:</strong> ${user.uid}</p>
+                    </div>
+                `;
+
+                // 서버 콜백 테스트
+                await testServerCallback(user);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                
+                let errorMessage = '';
+                switch(error.code) {
+                    case 'auth/popup-blocked':
+                        errorMessage = '팝업이 차단되었습니다. 브라우저 설정에서 팝업을 허용하세요.';
+                        break;
+                    case 'auth/popup-closed-by-user':
+                        errorMessage = '사용자가 로그인 팝업을 닫았습니다.';
+                        break;
+                    case 'auth/unauthorized-domain':
+                        errorMessage = 'localhost가 Firebase 승인된 도메인에 없습니다. Firebase Console에서 localhost를 승인된 도메인에 추가하세요.';
+                        break;
+                    case 'auth/configuration-not-found':
+                        errorMessage = 'Firebase 프로젝트에 Google 로그인이 설정되지 않았습니다. Firebase Console에서 Authentication > Sign-in method > Google을 활성화하세요.';
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h4>❌ Google 로그인 실패</h4>
+                        <p><strong>오류:</strong> ${errorMessage}</p>
+                        <p><strong>오류 코드:</strong> ${error.code || 'N/A'}</p>
+                    </div>
+                `;
+            }
+        };
+
+        async function testServerCallback(user) {
+            try {
+                const idToken = await user.getIdToken();
+                
+                const userData = {
+                    uid: user.uid,
+                    email: user.email,
+                    displayName: user.displayName,
+                    photoURL: user.photoURL,
+                    idToken: idToken
+                };
+
+                const response = await fetch('/test_firebase_callback.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(userData)
+                });
+
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('login-result').innerHTML += `
+                        <div class="success" style="margin-top: 10px;">
+                            <h4>✅ 서버 콜백 성공!</h4>
+                            <p>사용자 데이터가 서버에 성공적으로 전송되었습니다.</p>
+                        </div>
+                    `;
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                document.getElementById('login-result').innerHTML += `
+                    <div class="error" style="margin-top: 10px;">
+                        <h4>❌ 서버 콜백 실패</h4>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
