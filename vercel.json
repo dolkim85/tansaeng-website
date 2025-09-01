@@ -31,11 +31,5 @@
       "src": "/uploads/(.*)",
       "dest": "/uploads/$1"
     }
-  ],
-  "env": {
-    "DB_HOST": "@db_host",
-    "DB_NAME": "@db_name", 
-    "DB_USER": "@db_user",
-    "DB_PASS": "@db_pass"
-  }
+  ]
 }
