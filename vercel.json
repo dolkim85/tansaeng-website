@@ -1,6 +1,9 @@
 {
   "functions": {
-    "**/*.php": {
+    "api/*.php": {
+      "runtime": "vercel-php@0.7.3"
+    },
+    "*.php": {
       "runtime": "vercel-php@0.7.3"
     }
   },
@@ -22,12 +25,8 @@
       "dest": "/api/$1"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1"
-    },
-    {
-      "src": "/uploads/(.*)",
-      "dest": "/uploads/$1"
+      "src": "/(.*\\.(css|js|png|jpg|jpeg|gif|svg|ico|mp4))",
+      "dest": "/$1"
     }
   ]
 }
